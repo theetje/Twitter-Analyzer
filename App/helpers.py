@@ -1,6 +1,4 @@
-import requests
-
-""" Return een array met daarin de woorden voor analyse """
+""" Return een array met daarin de woorden voor analyse. """
 def getWordsFromLexicons(input_file):
     f = open(input_file)
     temp_array = []
