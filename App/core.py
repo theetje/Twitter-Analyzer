@@ -25,12 +25,14 @@ def start():
     negative_list = helpers.getWordsFromLexicons('sentiment-lexicons/negative-words.txt')
     positive_list = helpers.getWordsFromLexicons('sentiment-lexicons/positive-words.txt')
 
-    engine = create_engine('sqlite:///data_storage.sqlite')
+    top_dir = 'test_data' # Locatie van de twitter data
+    word_to_look_for = 'ibm' # woord waar je jaar gaat zoeken in underscore
+
+    engine = create_engine('sqlite:///' + word_to_look_for + '.sqlite')
     session = sessionmaker()
     session.configure(bind=engine)
     Base.metadata.create_all(engine)
 
-    top_dir = 'test_data' # Locatie van de twitter data
 
     for root, dirs, files in os.walk(top_dir, topdown=False): # Loop door de bestanden in test_data
         for name in files:
@@ -40,13 +42,13 @@ def start():
                 tar = tarfile.open(root + "/" + name, 'r')
                 for file_name in tar.getnames():
                     if file_name.endswith(".json.bz2"): # Kijk of het wel een .json.bz2 bestand is
-
+                        print(file_name)
                         bz2_file = tar.extractfile(file_name)
 
                         for tweet in bz2.open(bz2_file, 'rt'):
                             json_tweet = json.loads(tweet)
 
-                            if helpers.tweetConstraint(json_tweet, 'en', 'facebook') is not None:
+                            if helpers.tweetConstraint(json_tweet, 'en', word_to_look_for) is not None:
                                 tweet_sentiment = TweetAnalyzer.getSentiment(json_tweet,
                                                                             positive_list,
                                                                             negative_list)
