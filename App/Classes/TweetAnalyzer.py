@@ -10,6 +10,7 @@ class TweetAnalyzer(object):
 
     """ Geef het sentiment van een tweet terug als een dict. """
     def getSentiment(tweet, positive_list, negative_list):
+        print(tweet['text'])
         words_in_tweet = tweet['text'].split() # Stop de worden in een list
 
         date = TweetAnalyzer.getDateFromMSTime(tweet['timestamp_ms'])

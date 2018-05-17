@@ -1,5 +1,7 @@
 # Data
 test_data/
+# Resultaten
+resutls/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
