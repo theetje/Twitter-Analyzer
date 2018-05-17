@@ -6,7 +6,7 @@ class TweetAnalyzer(object):
     """ Geef de datem terug vanuit een ms time. """
     def getDateFromMSTime(timestamp_ms):
         s = int(timestamp_ms) / 1000.0
-        return datetime.fromtimestamp(s).strftime('%Y-%m-%d')
+        return datetime.fromtimestamp(s)
 
     """ Geef het sentiment van een tweet terug als een dict. """
     def getSentiment(tweet, positive_list, negative_list):

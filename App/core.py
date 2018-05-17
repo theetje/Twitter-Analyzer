@@ -2,17 +2,22 @@
 import helpers
 import json
 import os
-# import tarfile
-# import bz2
+import tarfile
+import bz2
 import string
 
 from pprint import pprint
-# from pathlib import Path
-# from Classes.FileManager import FileManager
+
+from Models.base import Base
+from Models.Tweet import Tweet
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
 from Classes.BColors import BColors
 from Classes.TweetAnalyzer import TweetAnalyzer
 
-from Models.TarFile import TarFile
 
 def start():
     """Start the App"""
@@ -20,30 +25,37 @@ def start():
     negative_list = helpers.getWordsFromLexicons('sentiment-lexicons/negative-words.txt')
     positive_list = helpers.getWordsFromLexicons('sentiment-lexicons/positive-words.txt')
 
+    engine = create_engine('sqlite:///data_storage.sqlite')
+    session = sessionmaker()
+    session.configure(bind=engine)
+    Base.metadata.create_all(engine)
+
     top_dir = 'test_data' # Locatie van de twitter data
 
     for root, dirs, files in os.walk(top_dir, topdown=False): # Loop door de bestanden in test_data
         for name in files:
+            print("Bezig met TarFile: ", name)
+
             if name.endswith(".tar"):
-                tarFile = TarFile(root, name) # Maak een taar file object
+                tar = tarfile.open(root + "/" + name, 'r')
+                for file_name in tar.getnames():
+                    if file_name.endswith(".json.bz2"): # Kijk of het wel een .json.bz2 bestand is
 
-                tweets = tarFile.getTweets()
-                for tweet in tweets: # Loop door te tweets
-                    # First arg is tweet 2nd arg is language thrd arg is for the subject
-                    analyzable_tweet = helpers.tweetConstraint(tweet, 'en', 'facebook')
-                    if analyzable_tweet is not None:
+                        bz2_file = tar.extractfile(file_name)
 
-                        tweet_sentiment = TweetAnalyzer.getSentiment(analyzable_tweet, positive_list, negative_list)
-                        for date, value in tweet_sentiment.items():
-                            # helpers.saveTweet('results/json_result.json', ) TODO ga verder met deze functie
-                            with open('results/json_result.json', 'r') as f: # Open de bestaande uitkomsten
-                                json_data = json.load(f)
+                        for tweet in bz2.open(bz2_file, 'rt'):
+                            json_tweet = json.loads(tweet)
 
-                                if date in json_data:
-                                    json_data[date]["positive_words"] += value['positive_words']
-                                    json_data[date]["negative_words"] += value['negative_words']
-                                else:
-                                    json_data.update(tweet_sentiment)
+                            if helpers.tweetConstraint(json_tweet, 'en', 'facebook') is not None:
+                                tweet_sentiment = TweetAnalyzer.getSentiment(json_tweet,
+                                                                            positive_list,
+                                                                            negative_list)
 
-                            with open('results/json_result.json', 'w') as fp: # Schrijf de uitkomsten opnieuw weg
-                                json.dump(json_data, fp)
+                                for date, value in tweet_sentiment.items():
+                                    newTweet = Tweet(text=json_tweet['text'],
+                                                    positive_words=value['positive_words'],
+                                                    negative_words=value['negative_words'],
+                                                    date=date)
+                                s = session()
+                                s.add(newTweet)
+                                s.commit()
