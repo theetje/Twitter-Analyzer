@@ -8,9 +8,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Databases (sqlite)
-*.sqlite
-
 # C extensions
 *.so
 
