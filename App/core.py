@@ -25,8 +25,8 @@ def start():
     negative_list = helpers.getWordsFromLexicons('sentiment-lexicons/negative-words.txt')
     positive_list = helpers.getWordsFromLexicons('sentiment-lexicons/positive-words.txt')
 
-    top_dir = '/Volumes/Toshiba/Twitter-data/2017-11' # Locatie van de twitter data
-    word_to_look_for = 'ibm' # woord waar je jaar gaat zoeken in underscore
+    top_dir = '/Volumes/Toshiba/Twitter-data/2017-12' # Locatie van de twitter data
+    word_to_look_for = 'facebook' # woord waar je jaar gaat zoeken in underscore
 
     engine = create_engine('sqlite:///' + word_to_look_for + '.sqlite')
     session = sessionmaker()
