@@ -19,16 +19,10 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from statsmodels.tsa.api import VAR, DynamicVAR
 
+from settings import *
+
 def start():
     """Start the Data Analyzer"""
-
-    word_to_analyze = 'ibm' # de database naam
-    maxlag = 4 # amount of lag days used
-    count_rows = False # count the amount of rows from the database
-    test_var = False
-    test_granger = True
-    plot_figure = False # plot the Xt and Rt results
-
     engine = create_engine('sqlite:///' + word_to_analyze + '.sqlite')
     session = sessionmaker()
     session.configure(bind=engine)
