@@ -22,8 +22,9 @@ def start():
     """Start the Data Analyzer"""
 
     word_to_analyze = 'ibm' # de database naam
-    maxlag = 4
-    plot_figure = False
+    maxlag = 4 # amount of lag days used
+    plot_figure = False # plot the Xt and Rt results
+    count_rows = True # count the amount of rows from the database
 
     engine = create_engine('sqlite:///' + word_to_analyze + '.sqlite')
     session = sessionmaker()
@@ -41,30 +42,19 @@ def start():
                                         + word_to_analyze
                                         + '.csv')
 
+    if count_rows:
+        print("Number of tweets used from " + word_to_analyze + ": ")
+        print(helpers.countRows(s, Tweet))
+
     combined_results = helpers.combineRtandXt(Xt_dict, Rt_dict)
 
-    result = sm.tsa.stattools.grangercausalitytests(combined_results, 4, addconst=True, verbose=True)
-    exit()
-
-
-    ln_Rt_dict = helpers.getRtDictFromCSV('2017/10/01',
-                                        '2017/12/31',
-                                        'data/stock/historical-quotes-'
-                                        + word_to_analyze
-                                        + '.csv')
-
-    pos_neg_dict = helpers.getPositiveNegativePerDay(s, Tweet)
-
-    pprint(pos_neg_dict)
-    exit()
-    Xt_dict = helpers.getXtnormalized(pos_neg_dict)
-    combined_dicts = helpers.combineRtandXt(Xt_dict, Rt_dict)
+    result = sm.tsa.stattools.grangercausalitytests(combined_results, maxlag, addconst=True, verbose=True)
 
     if plot_figure:
-        Xt_df = pd.DataFrame(list(combined_dicts[0].items()), columns=['Date', 'Xt'])
+        Xt_df = pd.DataFrame(list(Xt_dict.items()), columns=['Date', 'Xt'])
         Xt_df['Date'] = pd.to_datetime(Xt_df['Date'])
 
-        Rt_df = pd.DataFrame(list(combined_dicts[1].items()), columns=['Date', 'Rt'])
+        Rt_df = pd.DataFrame(list(Rt_dict.items()), columns=['Date', 'Rt'])
         Rt_df['Date'] = pd.to_datetime(Rt_df['Date'])
 
         Xt_df = Xt_df.sort_values('Date', ascending=True)
@@ -76,11 +66,3 @@ def start():
         plt.xticks(rotation='horizontal')
 
         plt.show()
-
-    Xt_tuples = list(combined_dicts[0].items())
-    Rt_tuples = list(combined_dicts[1].items())
-
-    Xt_list = [x[1] for x in Xt_tuples]
-    Rt_list = [r[1] for r in Rt_tuples]
-
-    result = sm.tsa.stattools.grangercausalitytests([[Xt_list[i], Rt_list[i]] for i in range(0, len(Xt_list))], maxlag, addconst=True, verbose=True)

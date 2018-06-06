@@ -3,11 +3,6 @@ from math import log as log
 from datetime import datetime
 from collections import OrderedDict
 
-""" From %Y/%m/%d to %Y-%m-%d. """
-def convertDate(date):
-    date.strptime(start_date, "%Y/%m/%d")
-    return date.strftime('%Y-%m-%d')
-
 """ get the data from the sql lite database into a dictionary. """
 def getPositiveNegativePerDay(session, db_object):
     temp_dict = OrderedDict()
@@ -78,58 +73,6 @@ def combineRtandXt(Xt_dict, Rt_dict):
 
     return result_array
 
-""" See if the date match and combine the results if they do. Return dict."""
-def combineRtandXtreturnDict(Xt_dict, Rt_dict):
-    Rt_result_dict = OrderedDict()
-    Xt_result_dict = OrderedDict()
-
-    for Rt_key, Rt_value in Rt_dict.items():
-        for Xt_key, Xt_value in Xt_dict.items():
-
-            if Rt_key == Xt_key:
-                Xt_result_dict.update({Xt_key: Xt_value})
-                Rt_result_dict.update({Rt_key: Rt_value})
-
-
-    return [Xt_result_dict, Rt_result_dict]
-
 """ Retrun the amount of rows. """
 def countRows(session, db_object):
     return session.query(db_object).count()
-
-
-def getXtnormalized(input_dict):
-    prev_day_sentiment = None
-    result_dict = {}
-    for key, value in input_dict.items():
-        day_sentiment = log(value[0]) - log(value[1])
-
-        if prev_day_sentiment is not None:
-            result_dict.update({key: day_sentiment - prev_day_sentiment})
-        prev_day_sentiment = float(day_sentiment)
-
-    return result_dict
-
-""" Return the log Rt value from a CSV. """
-def getRtDictFromCSV(start_date, end_date, file_dir):
-    with open(file_dir) as csvfile:
-        reader = csv.DictReader(csvfile)
-        dict = OrderedDict()
-        start_date_object = datetime.strptime(start_date, "%Y/%m/%d")
-        end_date_object = datetime.strptime(end_date, "%Y/%m/%d")
-
-        # Lees de datum en slot stand in een dict
-        for row in reader:
-            stock_date_object = datetime.strptime(row['date'], "%Y/%m/%d")
-            if stock_date_object <= end_date_object and stock_date_object >= start_date_object:
-                dict.update({row['date']:row['close']})
-
-        prev_value = None
-        Rt_dict = {}
-        for key, value in dict.items():
-            if prev_value is not None:
-                Rt_dict.update({key: log(float(value)) - log(prev_value)})
-            prev_value = float(value)
-
-        # Retrun a sorted dict, sorted by key.
-        return {k: Rt_dict[k] for k in sorted(Rt_dict)}
