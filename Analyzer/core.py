@@ -17,14 +17,17 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+from statsmodels.tsa.api import VAR, DynamicVAR
 
 def start():
     """Start the Data Analyzer"""
 
     word_to_analyze = 'ibm' # de database naam
     maxlag = 4 # amount of lag days used
+    count_rows = False # count the amount of rows from the database
+    test_var = False
+    test_granger = True
     plot_figure = False # plot the Xt and Rt results
-    count_rows = True # count the amount of rows from the database
 
     engine = create_engine('sqlite:///' + word_to_analyze + '.sqlite')
     session = sessionmaker()
@@ -46,10 +49,40 @@ def start():
         print("Number of tweets used from " + word_to_analyze + ": ")
         print(helpers.countRows(s, Tweet))
 
-    combined_results = helpers.combineRtandXt(Xt_dict, Rt_dict)
+    log_Xt_dict = helpers.getXFromData(s, Tweet, True)
+    log_Rt_dict = helpers.getRFromCSV('2017/10/01',
+                                        '2017/12/31',
+                                        'data/stock/historical-quotes-'
+                                        + word_to_analyze
+                                        + '.csv',
+                                        True)
 
-    result = sm.tsa.stattools.grangercausalitytests(combined_results, maxlag, addconst=True, verbose=True)
+    combined_2d_results_log = helpers.combineRtandXt(log_Xt_dict, log_Rt_dict)
 
+    # VAR
+    if test_var:
+        pd_data = pd.DataFrame(combined_2d_results_log, columns=['Xt', 'Rt'])
+        var_result = VAR(pd_data).fit(maxlag)
+
+        print(var_result.summary())
+        var_result.test_causality('Rt', 'Xt')
+
+        # VOORBEELD VAN HOE BESCHRIJVENDE STATESTIEK KAN WORDEN GEPLOT:
+        # fig = plt.subplots()
+        # fig = var_result.plot_sample_acorr()
+        # ax.set_ylabel("Y lable")
+        # ax.set_xlabel("X lable")
+        # ax.set_title("Title")
+        # plt.show()
+
+    # GRANGER CAUSALITY ANALYSIS
+    if test_granger:
+        result = sm.tsa.stattools.grangercausalitytests(combined_2d_results_log,
+                                                        maxlag,
+                                                        addconst=True,
+                                                        verbose=True)
+
+    # PLOT DATA
     if plot_figure:
         Xt_df = pd.DataFrame(list(Xt_dict.items()), columns=['Date', 'Xt'])
         Xt_df['Date'] = pd.to_datetime(Xt_df['Date'])

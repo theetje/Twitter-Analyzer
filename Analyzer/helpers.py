@@ -20,13 +20,16 @@ def getPositiveNegativePerDay(session, db_object):
     return {k: temp_dict[k] for k in sorted(temp_dict)}
 
 """ Get the delta of the pos - neg ."""
-def getXFromData(session, db_object):
+def getXFromData(session, db_object, _log=False):
     result_dict = {}
     prev_day_sentiment = None
     input_dict = getPositiveNegativePerDay(session, db_object)
 
     for key, value in input_dict.items():
-        day_sentiment = value[0] - value[1]
+        if _log:
+            day_sentiment = log(float(value[0])) - log(float(value[1]))
+        else:
+            day_sentiment = value[0] - value[1]
 
         if prev_day_sentiment is not None:
             result_dict.update({key: day_sentiment - prev_day_sentiment})
@@ -35,7 +38,7 @@ def getXFromData(session, db_object):
     return result_dict
 
 """ Return the Rt value from a CSV. """
-def getRFromCSV(start_date, end_date, file_dir):
+def getRFromCSV(start_date, end_date, file_dir, _log=False):
     with open(file_dir) as csvfile:
         reader = csv.DictReader(csvfile)
         _dict = OrderedDict()
@@ -54,24 +57,31 @@ def getRFromCSV(start_date, end_date, file_dir):
         prev_value = None
 
         for key, value in sorted_end_of_day.items():
-            if prev_value is not None:
-                Rt_dict.update({key: float(value) - prev_value})
-            prev_value = float(value)
+            if _log:
+                if prev_value is not None:
+                    if _log:
+                        Rt_dict.update({key: log(float(value)) - prev_value})
+                prev_value = log(float(value))
+            else:
+                if prev_value is not None:
+                    if _log:
+                        Rt_dict.update({key: float(value) - prev_value})
+                prev_value = float(value)
 
         return Rt_dict
 
 """ See if the date match and combine the results if they do."""
 def combineRtandXt(Xt_dict, Rt_dict):
     result_array = []
-
     for Rt_key, Rt_value in Rt_dict.items():
         for Xt_key, Xt_value in Xt_dict.items():
 
             if Rt_key == Xt_key:
                 result_array.extend([[Xt_value,  Rt_value]])
 
-
     return result_array
+
+
 
 """ Retrun the amount of rows. """
 def countRows(session, db_object):
