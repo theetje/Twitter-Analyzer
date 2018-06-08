@@ -1,7 +1,10 @@
 import csv
+import numpy
 from math import log as log
 from datetime import datetime
 from collections import OrderedDict
+
+from pprint import pprint
 
 """ get the data from the sql lite database into a dictionary. """
 def getPositiveNegativePerDay(session, db_object):
@@ -20,22 +23,23 @@ def getPositiveNegativePerDay(session, db_object):
     return {k: temp_dict[k] for k in sorted(temp_dict)}
 
 """ Get the delta of the pos - neg ."""
-def getXFromData(session, db_object, _log=False):
+def getXFromData(session, db_object, _Zscore=False):
     result_dict = {}
     prev_day_sentiment = None
     input_dict = getPositiveNegativePerDay(session, db_object)
 
     for key, value in input_dict.items():
-        if _log:
-            day_sentiment = log(float(value[0])) - log(float(value[1]))
-        else:
-            day_sentiment = value[0] - value[1]
+        # Get day sentiment
+        result_dict.update({key: value[0] - value[1]})
 
-        if prev_day_sentiment is not None:
-            result_dict.update({key: day_sentiment - prev_day_sentiment})
-        prev_day_sentiment = float(day_sentiment)
+    mean = numpy.array(list(result_dict.values())).mean(axis=0)
+    st_d = numpy.array(list(result_dict.values())).std(axis=0)
 
-    return result_dict
+    ZXt_dict = {}
+    for key, value in result_dict.items():
+        ZXt_dict.update({key: ((value - mean)/ st_d)})
+
+    return ZXt_dict
 
 """ Return the Rt value from a CSV. """
 def getRFromCSV(start_date, end_date, file_dir, _log=False):
@@ -47,9 +51,9 @@ def getRFromCSV(start_date, end_date, file_dir, _log=False):
 
         # Lees de datum en slot stand in een dict
         for row in reader:
-            stock_date_object = datetime.strptime(row['date'], "%Y/%m/%d")
+            stock_date_object = datetime.strptime(row['date'], "%x")
             if stock_date_object <= end_date_object and stock_date_object >= start_date_object:
-                _dict.update({row['date']:row['close']})
+                _dict.update({stock_date_object.strftime('%Y/%m/%d'):float(row['price'].replace(',','.'))})
 
         # sorteer de dict op datum
         sorted_end_of_day = {k: _dict[k] for k in sorted(_dict)}

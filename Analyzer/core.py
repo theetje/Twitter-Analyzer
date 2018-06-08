@@ -30,15 +30,6 @@ def start():
 
     s = session()
 
-    # Get the delta X sentiment score per day
-    Xt_dict = helpers.getXFromData(s, Tweet)
-    # Get the Return on stock for a given period from the dataset
-    Rt_dict = helpers.getRFromCSV('2017/10/01',
-                                        '2017/12/31',
-                                        'data/stock/historical-quotes-'
-                                        + word_to_analyze
-                                        + '.csv')
-
     if count_rows:
         print("Number of tweets used from " + word_to_analyze + ": ")
         print(helpers.countRows(s, Tweet))
@@ -46,8 +37,9 @@ def start():
     log_Xt_dict = helpers.getXFromData(s, Tweet, True)
     log_Rt_dict = helpers.getRFromCSV('2017/10/01',
                                         '2017/12/31',
-                                        'data/stock/historical-quotes-'
+                                        'data/stock/'
                                         + word_to_analyze
+                                        + '-stock-data'
                                         + '.csv',
                                         True)
 
