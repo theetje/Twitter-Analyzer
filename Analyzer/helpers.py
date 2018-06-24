@@ -63,13 +63,11 @@ def getRFromCSV(start_date, end_date, file_dir, _log=False):
         for key, value in sorted_end_of_day.items():
             if _log:
                 if prev_value is not None:
-                    if _log:
-                        Rt_dict.update({key: log(float(value)) - prev_value})
+                    Rt_dict.update({key: log(float(value)) - prev_value})
                 prev_value = log(float(value))
             else:
                 if prev_value is not None:
-                    if _log:
-                        Rt_dict.update({key: float(value) - prev_value})
+                    Rt_dict.update({key: float(value) - prev_value})
                 prev_value = float(value)
 
         return Rt_dict
