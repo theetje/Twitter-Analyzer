@@ -1,5 +1,1 @@
-nose
-sphinx
-requests
-beautifulsoup4
-tweepy-3.3.0
+

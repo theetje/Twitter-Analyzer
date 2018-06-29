@@ -111,6 +111,8 @@ def start():
         plt.plot(Rt_df['Date'], Rt_df['Rt'], label='Stock return',
                                                 dashes=[6, 2],
                                                 color='black')
+        plt.legend([Xt_df, Rt_df], ['Twitter sentiment', 'Stock return'])
+
         plt.xticks(rotation='horizontal')
 
         if word_to_analyze is 'ibm':

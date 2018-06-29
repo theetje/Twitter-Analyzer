@@ -21,7 +21,7 @@ from Classes.TweetAnalyzer import TweetAnalyzer
 
 def start():
     """Start the App"""
-    """ Maak twee arrays met positive en negative worden. """
+     """ Make two arrays containing positiva and negative words."""
     negative_list = helpers.getWordsFromLexicons('sentiment-lexicons/negative-words.txt')
     positive_list = helpers.getWordsFromLexicons('sentiment-lexicons/positive-words.txt')
 
@@ -33,7 +33,7 @@ def start():
     session.configure(bind=engine)
     Base.metadata.create_all(engine)
 
-
+     # Loop the files one by one
     for root, dirs, files in os.walk(top_dir, topdown=False): # Loop door de bestanden in test_data
         for name in files:
             print("Bezig met TarFile: ", name)
